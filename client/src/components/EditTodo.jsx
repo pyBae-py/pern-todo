@@ -2,38 +2,42 @@ import React, { Fragment, useState } from "react";
 
 const EditTodo = ({ todo }) => {
   //editText function
-
-  const editText = async id => {
+  const [description, setDescription] = useState(todo.description);
+  const editText = id => {
     try {
       const body = { description };
+      if (description[0] === " ") {
+        alert("No!!. Todo with the space in the beginning cannot be entered");
+      } else if (description === "") {
+        alert("Empty task cannot be entered");
+      } else {
+        fetch(`http://localhost:5000/todos/${id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body)
+        });
+      }
 
-      await fetch(`http://localhost:5000/todos/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body)
-      });
-
-      window.location = "/";
+      window.location.replace("/");
     } catch (err) {
       console.error(err.message);
     }
   };
 
-  const [description, setDescription] = useState(todo.description);
   return (
     <Fragment>
       <button
         type="button"
         className="btn btn-warning"
         data-toggle="modal"
-        data-target={`#id${todo.todo_id}`}
+        data-target={`#id${todo.id}`}
       >
         Edit
       </button>
       {/* id = "id21"*/}
       <div
         className="modal"
-        id={`id${todo.todo_id}`}
+        id={`id${todo.id}`}
         onClick={() => setDescription(todo.description)}
       >
         <div className="modal-dialog">
@@ -64,7 +68,7 @@ const EditTodo = ({ todo }) => {
                 type="button"
                 className="btn btn-warning"
                 data-dismiss="modal"
-                onClick={() => editText(todo.todo_id)}
+                onClick={() => editText(todo.id)}
               >
                 Edit
               </button>

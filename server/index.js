@@ -1,23 +1,52 @@
 const express = require("express");
 const app = express();
 const cors = require("cors");
-const pool = require("./db");
+const Sequelize = require("sequelize");
+const bodyParser = require("body-parser");
 
 // Middleware
 app.use(cors());
-app.use(express.json());
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 
-// Routes
+const sequelize = new Sequelize("perntodo", "athar", "12345", {
+  host: "localhost",
+  dialect: "postgres"
+});
 
-// Create a todo
-app.post("/todos", async (req, res) => {
+sequelize
+  .authenticate()
+  .then(() => {
+    console.log("Connection has been established successfully.");
+  })
+  .catch(err => {
+    console.error("Unable to connect to the database:", err);
+  });
+
+const Todo = sequelize.define(
+  "todo",
+  {
+    // attributes
+    description: {
+      type: Sequelize.STRING,
+      allowNull: false,
+      unique: {
+        args: true,
+        msg: "Todo is already there!"
+      }
+    }
+  },
+  {
+    // options
+  }
+);
+app.post("/todos", (req, res) => {
   try {
-    const { description } = req.body;
-    const newTodo = await pool.query(
-      "INSERT INTO todo (description) VALUES ($1)",
-      [description]
-    );
-    res.json(newTodo);
+    Todo.create({
+      description: req.body.description
+    }).then(todo => {
+      res.json("Todo Created");
+    });
   } catch (error) {
     console.error(error.message);
   }
@@ -25,36 +54,33 @@ app.post("/todos", async (req, res) => {
 
 // Get all todos
 
-app.get("/todos", async (req, res) => {
+app.get("/todos", (req, res) => {
   try {
-    const allTodos = await pool.query("SELECT * FROM todo ORDER BY todo_id");
-    res.json(allTodos.rows);
+    Todo.findAll({
+      order: [["description", "ASC"]]
+    }).then(todo => {
+      res.json(todo);
+    });
   } catch (error) {
     console.error(error.message);
   }
 });
-// Get a todo
-app.get("/todos/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-    const aTodo = await pool.query("SELECT * FROM todo WHERE todo_id=$1 ", [
-      id
-    ]);
-    res.json(aTodo);
-  } catch (error) {
-    console.error(error.message);
-  }
-});
+
 // Update a todo
 app.put("/todos/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const { description } = req.body;
-    await pool.query("UPDATE todo SET description = $1 WHERE todo_id =$2", [
-      description,
-      id
-    ]);
-    res.json("Todo was updated");
+    Todo.update(
+      { description: description },
+      {
+        where: {
+          id: id
+        }
+      }
+    ).then(() => {
+      console.log("Done");
+    });
   } catch (error) {
     console.error(error.message);
   }
@@ -64,10 +90,13 @@ app.put("/todos/:id", async (req, res) => {
 app.delete("/todos/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const deleteTodo = await pool.query("DELETE FROM todo WHERE todo_id = $1", [
-      id
-    ]);
-    res.json("Todo was deleted");
+    Todo.destroy({
+      where: {
+        id: id
+      }
+    }).then(() => {
+      console.log("Done");
+    });
   } catch (error) {
     console.error(error.message);
   }

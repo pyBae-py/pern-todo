@@ -6,12 +6,19 @@ const InputTodo = () => {
   const onSubmitForm = async e => {
     e.preventDefault();
     try {
-      const body = { description };
-      await fetch("http://localhost:5000/todos", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body)
-      });
+      if (description[0] === " ") {
+        alert("No!!. Todo with the space in the beginning cannot be entered");
+      } else if (description === "") {
+        alert("Empty task cannot be entered");
+      } else {
+        const body = { description };
+        await fetch("http://localhost:5000/todos", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body)
+        });
+      }
+
       window.location = "/";
     } catch (error) {
       console.error(error.message);

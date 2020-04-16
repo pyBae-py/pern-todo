@@ -4,12 +4,12 @@ const ListTodos = () => {
   const [todos, setTodos] = useState([]);
 
   // Delete Function
-  const deleteTodo = async id => {
+  const deleteTodo = id => {
     try {
-      await fetch(`http://localhost:5000/todos/${id}`, {
+      fetch(`http://localhost:5000/todos/${id}`, {
         method: "DELETE"
       });
-      setTodos(todos.filter(todo => todo.todo_id !== id));
+      setTodos(todos.filter(todo => todo.id !== id));
     } catch (error) {
       console.error(error.message);
     }
@@ -41,7 +41,7 @@ const ListTodos = () => {
         </thead>
         <tbody>
           {todos.map(todo => (
-            <tr key={todo.todo_id}>
+            <tr key={todo.id}>
               <td>{todo.description}</td>
               <td>
                 <EditTodo todo={todo} />
@@ -49,7 +49,7 @@ const ListTodos = () => {
               <td>
                 <button
                   className="btn btn-danger"
-                  onClick={() => deleteTodo(todo.todo_id)}
+                  onClick={() => deleteTodo(todo.id)}
                 >
                   Delete
                 </button>
